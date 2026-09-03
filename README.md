@@ -1,5 +1,5 @@
 # Product-Dissection-Module_3_Capstone_Project
-# 15-Minute Project Explanation Script
+# 
 
 ## Product Dissection for Amazon – E-Commerce Platform
 
