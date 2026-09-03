@@ -1,0 +1,130 @@
+CREATE TABLE Users (
+    UserID SERIAL PRIMARY KEY,
+    Username VARCHAR(50) NOT NULL,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    Password VARCHAR(100) NOT NULL,
+    UserType VARCHAR(20) CHECK (UserType IN ('Customer','Seller','Administrator')) NOT NULL,
+    RegistrationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_users
+FOREIGN KEY (customer_id)
+REFERENCES users(userid);
+
+ALTER TABLE reviews
+ADD CONSTRAINT fk_reviews_users
+FOREIGN KEY (customer_id)
+REFERENCES users(userid);
+
+
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    phone VARCHAR(15),
+    city VARCHAR(50)
+);
+
+CREATE TABLE categories (
+    category_id SERIAL PRIMARY KEY,
+    category_name VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    product_name VARCHAR(150) NOT NULL,
+    price NUMERIC(10,2) CHECK (price > 0),
+    stock_quantity INT DEFAULT 0,
+    category_id INT NOT NULL
+);
+
+ALTER TABLE products
+ADD CONSTRAINT fk_products_category
+FOREIGN KEY (category_id)
+REFERENCES categories(category_id);
+
+CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    order_date DATE NOT NULL,
+    order_status VARCHAR(30)
+        CHECK (order_status IN ('Pending','Shipped','Delivered','Cancelled')),
+    payment_method VARCHAR(30),
+    customer_id INT NOT NULL
+);
+
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_customer
+FOREIGN KEY (customer_id)
+REFERENCES customers(customer_id)
+ON DELETE CASCADE;
+
+CREATE TABLE order_items (
+    order_item_id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT CHECK (quantity > 0)
+);
+
+ALTER TABLE order_items
+ADD CONSTRAINT fk_order_items_order
+FOREIGN KEY (order_id)
+REFERENCES orders(order_id)
+ON DELETE CASCADE;
+
+ALTER TABLE order_items
+ADD CONSTRAINT fk_order_items_product
+FOREIGN KEY (product_id)
+REFERENCES products(product_id);
+
+CREATE TABLE payments (
+    payment_id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL,
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payment_method VARCHAR(30),
+    payment_status VARCHAR(30)
+        CHECK (payment_status IN ('Success','Failed','Pending')),
+    amount NUMERIC(10,2)
+);
+
+ALTER TABLE payments
+ADD CONSTRAINT fk_payments_order
+FOREIGN KEY (order_id)
+REFERENCES orders(order_id)
+ON DELETE CASCADE;
+
+
+CREATE TABLE shipments (
+    shipment_id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL,
+    shipped_date DATE,
+    delivered_date DATE,
+    delivery_status VARCHAR(30)
+        CHECK (delivery_status IN ('Packed','Shipped','Delivered'))
+);
+
+ALTER TABLE shipments
+ADD CONSTRAINT fk_shipments_order
+FOREIGN KEY (order_id)
+REFERENCES orders(order_id)
+ON DELETE CASCADE;
+
+CREATE TABLE reviews (
+    review_id SERIAL PRIMARY KEY,
+    product_id INT NOT NULL,
+    customer_id INT NOT NULL,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    review_text TEXT,
+    review_date DATE DEFAULT CURRENT_DATE
+);
+
+ALTER TABLE reviews
+ADD CONSTRAINT fk_reviews_product
+FOREIGN KEY (product_id)
+REFERENCES products(product_id);
+
+ALTER TABLE reviews
+ADD CONSTRAINT fk_reviews_customer
+FOREIGN KEY (customer_id)
+REFERENCES customers(customer_id);
+
